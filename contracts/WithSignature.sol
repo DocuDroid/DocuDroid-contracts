@@ -24,7 +24,7 @@ abstract contract WithSignature is EIP712, Droid {
     }
 
     /*******************************************************************************
-	** @dev ClaimFromValidator allows a validator to delegate the minting of a claim
+	** @dev _validateClaim allows a validator to delegate the minting of a claim
 	** to another address. The validator will need to sign a message with the
 	** following parameters:
 	** - validator: address of the validator
@@ -37,7 +37,8 @@ abstract contract WithSignature is EIP712, Droid {
     function _validateClaim(address validator, address requestor, address to, uint256 time, uint256 deadline, bytes calldata sig) internal {
 		require(_validator[validator], "Not from validator");
         require(_validatorClaims[validator][requestor] == false, "Already unlocked");
-        require(block.timestamp <= deadline, "Claim expired");   
+        require(block.timestamp <= deadline, "Claim expired");
+		require(time < 30, "Time too long");
 
 		bytes32 digest = _hashTypedDataV4(
 			keccak256(abi.encode(

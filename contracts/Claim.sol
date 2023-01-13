@@ -10,7 +10,7 @@ import "./Droid.sol";
 
 contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 	uint256 public nextID;
-	uint256 constant MONTH = 30 days;
+	uint256 constant MONTH = 31 days;
 	string private baseURI = '';
 	bool public isPaused = false;
 
@@ -19,6 +19,7 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 
 	mapping(uint256 => uint256) private _expiration;
 	mapping(uint256 => uint256) private _edition;
+	mapping(uint256 => uint256) private _editionSupply;
 
 	event claimed(address indexed owner, uint256 claimID, uint256 edition, uint256 expiration);
 	event delegateClaim(address indexed validator, address indexed requestor, address indexed to, uint256 time);
@@ -28,9 +29,15 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 	function _claim(address to, uint duration) private {
 		require(!isPaused, 'paused');
 
+		if (editionBumpThreshold >= block.timestamp) {
+			currentEdition++;
+			editionBumpThreshold = block.timestamp + editionBumpInterval;
+		}
+
 		uint256 _nextID = nextID;
 		_expiration[_nextID] = block.timestamp + duration;
 		_edition[_nextID] = currentEdition;
+		_editionSupply[currentEdition] += 1;
 		_safeMint(to, _nextID);
 		emit claimed(to, _nextID, currentEdition, _expiration[_nextID]);
 		nextID++;
@@ -126,6 +133,14 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 	**********************************************************************************************/
 	function claimData(uint256 claimID) external view returns (address, uint256, uint256, bool) {
 		return (ownerOf(claimID), expiration(claimID), edition(claimID), isExpired(claimID));
+	}
+
+	/**********************************************************************************************
+	**  @dev Returns the number of claims minted for a given edition
+	**  @param edition uint256 ID of the edition to query the supply of
+	**********************************************************************************************/
+	function editionSupply(uint256 edition) public view returns (uint256) {
+		return _editionSupply[edition];
 	}
 
 	/**********************************************************************************************

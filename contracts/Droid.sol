@@ -6,11 +6,14 @@ abstract contract Droid {
 	address public treasury;
 	address public pendingDroid;
 	uint256 public currentEdition;
+	uint256 public editionBumpThreshold;
+	uint256 public defaultEditionBumpInterval = 31 days;
 	uint256 public claimPrice = 1000;
 
 	constructor() {
 		droid = msg.sender;
 		treasury = msg.sender;
+		editionBumpThreshold = block.timestamp + defaultEditionBumpInterval;
 	}
 
 	modifier onlyDroid() {
@@ -75,7 +78,17 @@ abstract contract Droid {
 	**    Increment the edition. Can only be called by the Droid.
 	**    The change goes into effect immediately.
 	*******************************************************************************/
-	function bumpEdition() public onlyDroid() {
+	function bumpEdition(uint256 bumpDaysThreshold) public onlyDroid() {
 		currentEdition++;
+		editionBumpThreshold = block.timestamp + (bumpDaysThreshold * 1 days);
+	}
+
+	/*******************************************************************************
+	**  @notice
+	**    Set the default edition bump interval. Can only be called by the Droid.
+	**    The change goes into effect immediately.
+	*******************************************************************************/
+	function setDefaultEditionBumpInterval(uint256 editionBumpInterval) public onlyDroid() {
+		defaultEditionBumpInterval = (editionBumpInterval * 1 days);
 	}
 }
