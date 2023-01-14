@@ -2,9 +2,9 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
-import "./Droid.sol";
+import "./WithDroid.sol";
 
-abstract contract WithSignature is EIP712, Droid {
+abstract contract WithSignature is EIP712, WithDroid {
 	mapping(address => bool) private _validator;
     mapping(address => mapping(address => uint256)) public _validatorNonces;
     mapping(address => mapping(address => bool)) public _validatorClaims;

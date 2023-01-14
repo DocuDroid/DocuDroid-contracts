@@ -6,32 +6,30 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./WithSignature.sol";
-import "./Droid.sol";
+import "./WithPayment.sol";
+import "./WithDroid.sol";
 
-contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
+contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, WithPayment {
 	uint256 public nextID;
 	uint256 constant MONTH = 31 days;
 	string private baseURI = '';
 	bool public isPaused = false;
 
-	// IERC20 constant DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-    IERC20 constant FTM_USDC = IERC20(0x04068DA6C83AFCFA0e13ba15A6696662335D5B75);
-
 	mapping(uint256 => uint256) private _expiration;
 	mapping(uint256 => uint256) private _edition;
 	mapping(uint256 => uint256) private _editionSupply;
 
-	event claimed(address indexed owner, uint256 claimID, uint256 edition, uint256 expiration);
-	event delegateClaim(address indexed validator, address indexed requestor, address indexed to, uint256 time);
+	event Claimed(address indexed owner, uint256 claimID, uint256 edition, uint256 expiration);
+	event DelegateClaim(address indexed validator, address indexed requestor, address indexed to, uint256 time);
 
     constructor(address _initialValidator) ERC721("Claim Access Control", "CAC") WithSignature("Claim Access Control", _initialValidator) {}
 
 	function _claim(address to, uint duration) private {
-		require(!isPaused, 'paused');
+		require(!isPaused, "paused");
 
 		if (editionBumpThreshold >= block.timestamp) {
 			currentEdition++;
-			editionBumpThreshold = block.timestamp + editionBumpInterval;
+			editionBumpThreshold = block.timestamp + defaultEditionBumpInterval;
 		}
 
 		uint256 _nextID = nextID;
@@ -39,7 +37,7 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 		_edition[_nextID] = currentEdition;
 		_editionSupply[currentEdition] += 1;
 		_safeMint(to, _nextID);
-		emit claimed(to, _nextID, currentEdition, _expiration[_nextID]);
+		emit Claimed(to, _nextID, currentEdition, _expiration[_nextID]);
 		nextID++;
 	}
 
@@ -47,8 +45,8 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 	**  @dev: mint a new claim in exchange of DAI. The claim will be valid for 30
 	**  days
 	*******************************************************************************/
-	function claim() public {
-		require(FTM_USDC.transferFrom(msg.sender, treasury, claimPrice), 'invalid amount');
+	function claim(address tokenAsPayment) public {
+		takePayment(tokenAsPayment);
 		_claim(msg.sender, MONTH);
 	}
 
@@ -57,8 +55,8 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 	**  days. The claim can be minted for another address.
 	**  @param to: address which will receive the claim
 	*******************************************************************************/
-	function claimFor(address to) public {
-		require(FTM_USDC.transferFrom(msg.sender, treasury, claimPrice), 'invalid amount');
+	function claimFor(address tokenAsPayment, address to) public {
+		takePayment(tokenAsPayment);
 		_claim(to, MONTH);
 	}
 
@@ -88,7 +86,7 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, Droid, WithSignature {
 		require(balanceOf(requestor) == 0, "Already claimed");
 		_validateClaim(validator, requestor, to, time, deadline, sig);
 		_claim(to, (time * 1 days));
-		emit delegateClaim(validator, requestor, to, time);
+		emit DelegateClaim(validator, requestor, to, time);
     }
 
 	/*******************************************************************************

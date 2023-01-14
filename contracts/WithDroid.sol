@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-abstract contract Droid {
+abstract contract WithDroid {
 	address public droid;
 	address public treasury;
 	address public pendingDroid;
 	uint256 public currentEdition;
 	uint256 public editionBumpThreshold;
 	uint256 public defaultEditionBumpInterval = 31 days;
-	uint256 public claimPrice = 1000;
 
 	constructor() {
 		droid = msg.sender;
@@ -61,16 +60,6 @@ abstract contract Droid {
 	*******************************************************************************/
 	function setTreasury(address _treasury) public onlyDroid() {
 		treasury = _treasury;
-	}
-
-	/*******************************************************************************
-	**  @notice
-	**    Change the price for one claim. Can only be called by the Droid.
-	**    The change goes into effect immediately.
-	**  @param _treasury The address requested to take over the role.
-	*******************************************************************************/
-	function setClaimPrice(uint256 _claimPrice) public onlyDroid() {
-		claimPrice = _claimPrice;
 	}
 
 	/*******************************************************************************
