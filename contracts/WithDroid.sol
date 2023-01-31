@@ -47,7 +47,7 @@ abstract contract WithDroid {
 	**    setDroid() should be called by the existing droid address,
 	**    prior to calling this function.
 	*******************************************************************************/
-	function acceptDoid() public onlyPendingDroid() {
+	function acceptDroid() public onlyPendingDroid() {
 		droid = msg.sender;
 	}
 
