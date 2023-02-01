@@ -10,7 +10,7 @@ import "./WithPayment.sol";
 import "./WithDroid.sol";
 
 contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, WithPayment {
-	uint256 public nextID;
+	uint256 public nextID = 1;
 	uint256 constant MONTH = 31 days;
 	string private baseURI = '';
 	bool public isPaused = false;
@@ -27,7 +27,7 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, Wi
 	function _claim(address to, uint duration) private {
 		require(!isPaused, "paused");
 
-		if (editionBumpThreshold >= block.timestamp) {
+		if (editionBumpThreshold < block.timestamp) {
 			currentEdition++;
 			editionBumpThreshold = block.timestamp + defaultEditionBumpInterval;
 		}
