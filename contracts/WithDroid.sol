@@ -9,6 +9,12 @@ abstract contract WithDroid {
 	uint256 public editionBumpThreshold;
 	uint256 public defaultEditionBumpInterval = 31 days;
 
+	event DroidSet(address indexed newDroid);
+	event DroidAccepted(address indexed newDroid);
+	event TreasurySet(address indexed newTreasury);
+	event BumpEdition(uint256 newEdition, uint256 newBumpThreshold);
+	event DefaultEditionBumpIntervalReplaced(uint256 newDefaultInterval);
+
 	constructor() {
 		droid = msg.sender;
 		treasury = msg.sender;
@@ -34,7 +40,9 @@ abstract contract WithDroid {
 	**  @param _droid The address requested to take over the role.
 	*******************************************************************************/
 	function setDroid(address _droid) public onlyDroid() {
+		require(_droid != address(0), "zero address");
 		pendingDroid = _droid;
+		emit DroidSet(_droid);
 	}
 
 	/*******************************************************************************
@@ -49,6 +57,7 @@ abstract contract WithDroid {
 	*******************************************************************************/
 	function acceptDroid() public onlyPendingDroid() {
 		droid = msg.sender;
+		emit DroidAccepted(msg.sender);
 	}
 
 	/*******************************************************************************
@@ -59,7 +68,9 @@ abstract contract WithDroid {
 	**  @param _treasury The address requested to take over the role.
 	*******************************************************************************/
 	function setTreasury(address _treasury) public onlyDroid() {
+		require(_treasury != address(0), "zero address");
 		treasury = _treasury;
+		emit TreasurySet(_treasury);
 	}
 
 	/*******************************************************************************
@@ -70,6 +81,7 @@ abstract contract WithDroid {
 	function bumpEdition(uint256 bumpDaysThreshold) public onlyDroid() {
 		currentEdition++;
 		editionBumpThreshold = block.timestamp + (bumpDaysThreshold * 1 days);
+		emit BumpEdition(currentEdition, editionBumpThreshold);
 	}
 
 	/*******************************************************************************
@@ -79,5 +91,6 @@ abstract contract WithDroid {
 	*******************************************************************************/
 	function setDefaultEditionBumpInterval(uint256 editionBumpInterval) public onlyDroid() {
 		defaultEditionBumpInterval = (editionBumpInterval * 1 days);
+		emit DefaultEditionBumpIntervalReplaced(defaultEditionBumpInterval);
 	}
 }

@@ -42,7 +42,7 @@ abstract contract WithPayment is WithDroid {
 	** @param token The token to set the price for
 	** @param price The price to set for the token
 	*******************************************************************************/
-    function setAcceptedTokens(address token, uint256 price) internal onlyDroid {
+    function setAcceptedTokens(address token, uint256 price) public onlyDroid {
 		acceptedTokens[IERC20(token)] = price;
 	}
 
@@ -57,10 +57,9 @@ abstract contract WithPayment is WithDroid {
         uint256 amount = acceptedTokens[IERC20(token)];
 
 		uint256 balanceBefore = IERC20(token).balanceOf(treasury);
-		IERC20(token).transferFrom(msg.sender, treasury, amount);
+		require(IERC20(token).transferFrom(msg.sender, treasury, amount));
 		uint256 balanceAfter = IERC20(token).balanceOf(treasury);
 		require(balanceAfter - balanceBefore == amount, "payment failed");
 		emit PaymentExecuted(msg.sender, token, amount);
 	}
 }
-

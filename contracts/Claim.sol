@@ -33,12 +33,12 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, Wi
 		}
 
 		uint256 _nextID = nextID;
+		nextID++;
 		_expiration[_nextID] = block.timestamp + duration;
 		_edition[_nextID] = currentEdition;
 		_editionSupply[currentEdition] += 1;
 		_safeMint(to, _nextID);
 		emit Claimed(to, _nextID, currentEdition, _expiration[_nextID]);
-		nextID++;
 	}
 
 	/*******************************************************************************
@@ -91,10 +91,19 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, Wi
 
 	/*******************************************************************************
 	**  @dev: replace the baseURI with a new one. Can only be called by the Droid.
-	**  @param newURI: new baseURI
+	**  @param _newURI: new baseURI
 	*******************************************************************************/
-	function	setBaseURI(string memory newURI) public onlyDroid() {
-		baseURI = newURI;
+	function	setBaseURI(string memory _newURI) public onlyDroid() {
+		baseURI = _newURI;
+	}
+
+	/*******************************************************************************
+	**  @dev: indicate whether the contract is paused or not. Can only be called by
+	**  the Droid.
+	**  @param _shouldPause: true if the contract should be paused, false otherwise
+	*******************************************************************************/
+	function	pauseClaims(bool _shouldPause) public onlyDroid() {
+		isPaused = _shouldPause;
 	}
 
 	/**********************************************************************************************
@@ -103,42 +112,42 @@ contract Claim is ERC721, ERC721Enumerable, EIP712, WithDroid, WithSignature, Wi
 
 	/**********************************************************************************************
 	**  @dev Returns the expiration date of a claim
-	**  @param claimID uint256 ID of the claim to query the expiration of
+	**  @param _claimID uint256 ID of the claim to query the expiration of
 	**********************************************************************************************/
-	function expiration(uint256 claimID) public view returns (uint256) {
-		return _expiration[claimID];
+	function expiration(uint256 _claimID) public view returns (uint256) {
+		return _expiration[_claimID];
 	}
 
 	/**********************************************************************************************
 	**  @dev Returns the edition of a claim
-	**  @param claimID uint256 ID of the claim to query the edition of
+	**  @param _claimID uint256 ID of the claim to query the edition of
 	**********************************************************************************************/
-	function edition(uint256 claimID) public view returns (uint256) {
-		return _edition[claimID];
+	function edition(uint256 _claimID) public view returns (uint256) {
+		return _edition[_claimID];
 	}
 
 	/**********************************************************************************************
 	**  @dev Indicate if the claim is expired or not
-	**  @param claimID uint256 ID of the claim to check the expiration of
+	**  @param _claimID uint256 ID of the claim to check the expiration of
 	**********************************************************************************************/
-	function isExpired(uint256 claimID) public view returns (bool) {
-		return _expiration[claimID] < block.timestamp;
+	function isExpired(uint256 _claimID) public view returns (bool) {
+		return _expiration[_claimID] < block.timestamp;
 	}
 
 	/**********************************************************************************************
 	**  @dev For a given claimID, returns the owner and expiration date
-	**  @param claimID uint256 ID of the claim to query the owner of
+	**  @param _claimID uint256 ID of the claim to query the owner of
 	**********************************************************************************************/
-	function claimData(uint256 claimID) external view returns (address, uint256, uint256, bool) {
-		return (ownerOf(claimID), expiration(claimID), edition(claimID), isExpired(claimID));
+	function claimData(uint256 _claimID) external view returns (address, uint256, uint256, bool) {
+		return (ownerOf(_claimID), expiration(_claimID), edition(_claimID), isExpired(_claimID));
 	}
 
 	/**********************************************************************************************
 	**  @dev Returns the number of claims minted for a given edition
 	**  @param edition uint256 ID of the edition to query the supply of
 	**********************************************************************************************/
-	function editionSupply(uint256 edition) public view returns (uint256) {
-		return _editionSupply[edition];
+	function editionSupply(uint256 _editionID) public view returns (uint256) {
+		return _editionSupply[_editionID];
 	}
 
 	/**********************************************************************************************
