@@ -10,9 +10,6 @@ abstract contract WithPayment is WithDroid {
 	event PaymentExecuted(address indexed by, address indexed token, uint256 amount);
 
 	constructor() {
-		IERC20 FTM_USDC = IERC20(0x04068DA6C83AFCFA0e13ba15A6696662335D5B75);
-		acceptedTokens[FTM_USDC] = 10_000000;
-
 		IERC20 ETH_DAI = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 		acceptedTokens[ETH_DAI] = 10_000000000000000000;
 
