@@ -15,6 +15,7 @@ abstract contract WithSignature is EIP712, WithDroid {
 
 	constructor(string memory name, address _initialValidator) EIP712(name, "1") {
 		_validator[_initialValidator] = true;
+		_validatorNonces[_initialValidator][address(this)] = 0;
 	}
 
     function _useValidatorNonce(address validator, address requestor) internal virtual returns (uint256 current) {
@@ -36,7 +37,7 @@ abstract contract WithSignature is EIP712, WithDroid {
 	*******************************************************************************/
     function _validateClaim(address validator, address requestor, address to, uint256 time, uint256 deadline, bytes calldata sig) internal {
 		require(_validator[validator], "Not from validator");
-        require(_validatorClaims[validator][requestor] == false, "Already unlocked");
+        require(!_validatorClaims[validator][requestor], "Already unlocked");
         require(block.timestamp <= deadline, "Claim expired");
 		require(time < 30, "Time too long");
 
@@ -47,7 +48,7 @@ abstract contract WithSignature is EIP712, WithDroid {
 				requestor,
 				to,
 				time,
-				_validatorNonces[validator][requestor],
+				_useValidatorNonce(validator, requestor),
 				deadline
 			))
 		);
